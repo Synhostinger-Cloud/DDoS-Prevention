@@ -10,6 +10,13 @@
 #
 # 			By Bastien LANGUEDOC
 #			Prevention attack DDoS
+#
+######## OS Type ###############
+APT=/usr/lib/apt/
+YUM=/usr/lib/yum-plugins/
+curl=/usr/bin/curl
+Folder/var/synhostinger/
+iptables=/sbin/iptables
 #color
 RED=$(tput setaf 1)
 GREEN=$(tput setaf 2)
@@ -27,7 +34,7 @@ CYANBG=$(tput setab 6)
 WHITEBG=$(tput setab 7)
 
 #Supported systems:
-supported="CentOS/RHEL Linux Debian Ubuntu"
+supported="RHEL & Debian"
 
 cat << "EOF"
    _____             _               _   _
@@ -41,12 +48,12 @@ cat << "EOF"
 
 EOF
 # Root Force
-if [ "$(id -u)" != "0" ]; then
-        printf "${RED}⛔️ Attention droit root obligatoire ⛔️\\n" 1>&2
-        printf "\\n"
-        exit 1
-fi
-    printf "${RED}⛔️ Protection pour VPS / Dédié ⛔️\\n"
+ if [ "$(id -u)" != "0" ]; then
+         printf "${RED}⛔️ Attention droit root obligatoire ⛔️\\n" 1>&2
+         printf "\\n"
+         exit 1
+ fi
+    printf "${RED}⛔️ Protection pour VPS / Dédié / Container ⛔️\\n"
     printf "${RED}⛔️ Réduction de l'attaque DDoS ⛔️\\n"
     printf "\\n"
     printf "${WHITE} - Les règles avec des couleurs\\n"
@@ -55,16 +62,45 @@ fi
     printf "${YELLOW} - Recommandé\\n"
     printf "${GREEN} - Facultatif\\n"
     printf "\\n"
-    printf "${WHITE}OS:${MAGENTA} $supported \\n"
+    printf "${WHITE}Supporte:${MAGENTA} $supported \\n"
     printf "${CYAN}\\n"
     echo "-------------------------------------"
     printf "Appuiez entrer pour continuer...\\n"
     echo "-------------------------------------"
     read -p ""
     printf "Exécution du script en cours...\\n"
+    printf "\\n"
 #############################################################################
-#Pour la prochaine version !
-mkdir -p /var/synhostinger/  > /dev/null 2>&1
+if [ -d "$APT" ]; then
+        printf "${GREEN} Vous utilisez Debian ou un dérivé ✅\\n"
+        Installer="apt"        
+    else 
+if [ -d "$YUM" ]; then
+        printf "${GREEN} Vous utilisez RedHat ou un dérivé ✅\\n"
+        Installer="yum"
+    else
+        printf "${RED} Votre système n'est pas compatible avec notre script ! 👎 \\n"
+        printf "\\n"
+        exit 1
+        
+fi
+fi
+printf "\\n"
+$Installer update -y
+$Installer install python3 python3-pip -y
+mkdir -p $Folder > /dev/null 2>&1
+if [ -f "$curl" ]; then
+       curl https://raw.githubusercontent.com/Synhostinger-Cloud/BanIP/master/banip.py --output /usr/bin/ipban
+    else 
+$Installer install curl -y
+        curl https://raw.githubusercontent.com/Synhostinger-Cloud/BanIP/master/banip.py --output /usr/bin/ipban
+fi
+if [ -f "$iptables" ]; then
+    echo""
+    else 
+$Installer install iptables -y
+fi
+chmod +x /usr/bin/ipban 2>&1
 printf "${RED} Souhaitez-vous bloquer les paquets avec de faux drapeaux TCP ❓ [o/N]\\n"
 read reponse
 if [[ "$reponse" == "o" ]]
@@ -157,7 +193,11 @@ then
 else
     echo "${RED} Erreur vous avez écrit : $number"
     read -p "Combien de connexion ❓ [1-9999] " number
-    printf "${CYAN} Parfait la règle est active !"
+    printf "${CYAN} Parfait la règle est active !\\n"
     /sbin/iptables -A INPUT -p tcp -m connlimit --connlimit-above $number -j REJECT --reject-with tcp-reset
 fi
 fi
+printf "${CYAN} Vous avez terminé l'installation 🆗 \\n"
+printf "${CYAN} Nouvelle commande disponible ipban 🆗\\n"
+printf "${MAGENTA} Merci d'utiliser notre système d'anti-ddos ❤️️\\n"
+printf "${WHITE}\\n"
