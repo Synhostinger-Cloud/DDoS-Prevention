@@ -1,4 +1,4 @@
-# ![logo](https://www.synhostinger.com/img/synhicon_color.png)
+# ![logo](https://www.synhostinger.com/img/synh_txtdark.png)
 
 ## Introduction
 Système d'iptables pour réduire les attaques DDoS V 0.1
